@@ -155,6 +155,7 @@ in
           "niri/window"
         ];
         modules-right = [
+          "custom/clipboard"
           "pulseaudio"
           "backlight"
           "battery"
@@ -241,6 +242,13 @@ in
           spacing = 10;
         };
 
+        "custom/clipboard" = {
+          format = "";
+          tooltip = "Presse-papier (Historique)\nClic gauche: Sélectionner\nClic droit: Vider";
+          on-click = "cliphist list | fuzzel -d | cliphist decode | wl-copy";
+          on-click-right = "cliphist wipe";
+        };
+
         "custom/power" = {
           format = "⏻";
           tooltip = "Verrouiller / Quitter";
@@ -290,11 +298,20 @@ in
         color: #f5c2e7;
         font-weight: bold;
       }
-      #clock, #cpu, #memory, #network, #pulseaudio, #backlight, #battery, #tray, #custom-power {
+      #clock, #cpu, #memory, #network, #pulseaudio, #backlight, #battery, #tray, #custom-clipboard, #custom-power {
         padding: 0 10px;
         margin: 2px 3px;
         border-radius: 6px;
         background-color: #313244;
+      }
+      #custom-clipboard {
+        color: #f5c2e7;
+        font-size: 14px;
+        padding: 0 10px;
+      }
+      #custom-clipboard:hover {
+        background-color: #f5c2e7;
+        color: #1e1e2e;
       }
       #clock {
         color: #cba6f7;
