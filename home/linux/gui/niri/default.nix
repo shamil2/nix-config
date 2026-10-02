@@ -219,10 +219,11 @@ in
         };
 
         network = {
-          format-wifi = " {signalStrength}%";
-          format-ethernet = "󰈀 {ipaddr}";
+          interval = 2;
+          format-wifi = " {bandwidthDownBytes} 󰕒 {bandwidthUpBytes}";
+          format-ethernet = "󰈀 {bandwidthDownBytes} 󰕒 {bandwidthUpBytes}";
           format-disconnected = "󰤭 Disconnected";
-          tooltip-format = "{ifname}: {ipaddr}/{cidr}";
+          tooltip-format = "{ifname} ({essid}): {ipaddr}/{cidr}\nSignal: {signalStrength}%\n󰇚 {bandwidthDownBytes} | 󰕒 {bandwidthUpBytes}";
           on-click = "nm-connection-editor";
         };
 
