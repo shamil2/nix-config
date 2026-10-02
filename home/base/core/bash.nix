@@ -6,7 +6,13 @@
     sessionVariables = {
       FLAKE = "${config.home.homeDirectory}/nix-config";
       NH_FLAKE = "${config.home.homeDirectory}/nix-config";
+      NH_OS_FLAKE = "${config.home.homeDirectory}/nix-config";
     };
+    bashrcExtra = ''
+      export FLAKE="${config.home.homeDirectory}/nix-config"
+      export NH_FLAKE="${config.home.homeDirectory}/nix-config"
+      export NH_OS_FLAKE="${config.home.homeDirectory}/nix-config"
+    '';
     shellAliases = {
       ll = "ls -lah";
       la = "ls -A";
