@@ -72,4 +72,12 @@
       "--cmd cd"
     ];
   };
+
+  # Direnv with nix-direnv (fast Nix shell loading)
+  programs.direnv = {
+    enable = true;
+    enableBashIntegration = true;
+    enableNushellIntegration = true;
+    nix-direnv.enable = true;
+  };
 }
