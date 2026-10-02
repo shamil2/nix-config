@@ -18,8 +18,8 @@
       la = "ls -A";
       l = "ls -CF";
       ".." = "cd ..";
-      rebuild = "nh os switch";
-      nix-test = "nh os test";
+      rebuild = "nh os switch ~/nix-config";
+      nix-test = "nh os test ~/nix-config";
       nix-clean = "nh clean all";
     };
   };
