@@ -1,0 +1,82 @@
+{
+  "nodes": {
+    "home-manager": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1790955005,
+        "narHash": "sha256-EEQKUylD8zuRTmDFX4rbwsHQ+iZhqqOldYcFN8SLcE0=",
+        "owner": "nix-community",
+        "repo": "home-manager",
+        "rev": "0560d64401a6d5370732a69d08bc4a6b135962d9",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "home-manager",
+        "type": "github"
+      }
+    },
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1790822859,
+        "narHash": "sha256-69xHQhAeMAD2wDXO7T2pcOZIF9Sga2W+JkmY2a11Ops=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "c59305bab2065cfecc4944690d9eedbb56f3a9fa",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "home-manager": "home-manager",
+        "nixpkgs": "nixpkgs",
+        "wallpapers": "wallpapers",
+        "wallpapers-extra": "wallpapers-extra"
+      }
+    },
+    "wallpapers": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1703310017,
+        "narHash": "sha256-SL3PIDa4BNz2rDZ/9KwnJCAfhelIoqpLtQ/FSYgfusI=",
+        "owner": "ryan4yin",
+        "repo": "wallpapers",
+        "rev": "20dea02ee2c0bb74dadcc3d4ec5efe78d00520dc",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ryan4yin",
+        "repo": "wallpapers",
+        "type": "github"
+      }
+    },
+    "wallpapers-extra": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1697900033,
+        "narHash": "sha256-Q8id76UlTruuIS5CMnSp7kksdM3L53fmBklbch+tBYQ=",
+        "owner": "codingcodax",
+        "repo": "wallpapers",
+        "rev": "41e4bb5f47b467cad0102e499af585bcaac78fc0",
+        "type": "github"
+      },
+      "original": {
+        "owner": "codingcodax",
+        "repo": "wallpapers",
+        "type": "github"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}

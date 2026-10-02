@@ -1,0 +1,7 @@
+// Autostart applications for Niri session
+
+spawn-at-startup "xwayland-satellite"
+spawn-at-startup "waybar"
+spawn-at-startup "mako"
+spawn-at-startup "wallpaper-rotator"
+spawn-at-startup "bash" "-c" "wl-paste --watch cliphist store"

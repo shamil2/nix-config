@@ -1,0 +1,17 @@
+// Window rules for Niri
+
+window-rule {
+    geometry-corner-radius 8
+    clip-to-geometry true
+}
+
+// Open dialogs and specific utility windows as floating
+window-rule {
+    match app-id=r#"pavucontrol"#
+    open-floating true
+}
+
+window-rule {
+    match app-id=r#"nm-connection-editor"#
+    open-floating true
+}

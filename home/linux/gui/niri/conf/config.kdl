@@ -1,0 +1,49 @@
+// Niri configuration file (KDL format: https://kdl.dev)
+// Modeled after ryan4yin's nix-config setup
+
+include "./keybindings.kdl"
+include "./windowrules.kdl"
+include "./spawn-at-startup.kdl"
+
+input {
+    keyboard {
+        xkb {
+            layout "fr"
+        }
+    }
+    touchpad {
+        dwt
+        natural-scroll
+        tap
+    }
+    mouse {
+    }
+}
+
+layout {
+    gaps 8
+    center-focused-column "never"
+    preset-column-widths {
+        proportion 0.333333
+        proportion 0.500000
+        proportion 0.666667
+    }
+    default-column-width { proportion 0.500000; }
+    focus-ring {
+        width 3
+        active-color "#cba6f7"
+        inactive-color "#313244"
+    }
+    border {
+        off
+    }
+}
+
+hotkey-overlay {
+    skip-at-startup
+}
+
+screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
+
+animations {
+}

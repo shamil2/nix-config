@@ -1,0 +1,103 @@
+// Keybindings for Niri
+
+binds {
+    // Terminal emulator
+    Mod+Return { spawn "alacritty"; }
+    Mod+T { spawn "alacritty"; }
+
+    // Application launcher
+    Mod+D { spawn "fuzzel"; }
+    Mod+Space { spawn "fuzzel"; }
+
+    // Clipboard History (Cliphist + Fuzzel)
+    Mod+V { spawn "bash" "-c" "cliphist list | fuzzel -d | cliphist decode | wl-copy"; }
+
+    // Window management
+    Mod+Q { close-window; }
+    Mod+F { maximize-column; }
+    Mod+Shift+F { fullscreen-window; }
+    Mod+R { switch-preset-column-width; }
+
+    // Focus navigation
+    Mod+Left  { focus-column-left; }
+    Mod+Down  { focus-window-down; }
+    Mod+Up    { focus-window-up; }
+    Mod+Right { focus-column-right; }
+    Mod+H     { focus-column-left; }
+    Mod+J     { focus-window-down; }
+    Mod+K     { focus-window-up; }
+    Mod+L     { focus-column-right; }
+
+    // Move windows
+    Mod+Shift+Left  { move-column-left; }
+    Mod+Shift+Down  { move-window-down; }
+    Mod+Shift+Up    { move-window-up; }
+    Mod+Shift+Right { move-column-right; }
+    Mod+Shift+H     { move-column-left; }
+    Mod+Shift+J     { move-window-down; }
+    Mod+Shift+K     { move-window-up; }
+    Mod+Shift+L     { move-column-right; }
+
+    // Workspaces (supports both standard numbers and direct AZERTY characters)
+    Mod+1 { focus-workspace 1; }
+    Mod+2 { focus-workspace 2; }
+    Mod+3 { focus-workspace 3; }
+    Mod+4 { focus-workspace 4; }
+    Mod+5 { focus-workspace 5; }
+    Mod+6 { focus-workspace 6; }
+    Mod+7 { focus-workspace 7; }
+    Mod+8 { focus-workspace 8; }
+    Mod+9 { focus-workspace 9; }
+
+    Mod+Ampersand   { focus-workspace 1; }
+    Mod+Eacute      { focus-workspace 2; }
+    Mod+Quotedbl    { focus-workspace 3; }
+    Mod+Apostrophe  { focus-workspace 4; }
+    Mod+Parenleft   { focus-workspace 5; }
+    Mod+Minus       { focus-workspace 6; }
+    Mod+Egrave      { focus-workspace 7; }
+    Mod+Underscore  { focus-workspace 8; }
+    Mod+Ccedilla    { focus-workspace 9; }
+
+    Mod+Shift+1 { move-column-to-workspace 1; }
+    Mod+Shift+2 { move-column-to-workspace 2; }
+    Mod+Shift+3 { move-column-to-workspace 3; }
+    Mod+Shift+4 { move-column-to-workspace 4; }
+    Mod+Shift+5 { move-column-to-workspace 5; }
+    Mod+Shift+6 { move-column-to-workspace 6; }
+    Mod+Shift+7 { move-column-to-workspace 7; }
+    Mod+Shift+8 { move-column-to-workspace 8; }
+    Mod+Shift+9 { move-column-to-workspace 9; }
+
+    Mod+Shift+Ampersand   { move-column-to-workspace 1; }
+    Mod+Shift+Eacute      { move-column-to-workspace 2; }
+    Mod+Shift+Quotedbl    { move-column-to-workspace 3; }
+    Mod+Shift+Apostrophe  { move-column-to-workspace 4; }
+    Mod+Shift+Parenleft   { move-column-to-workspace 5; }
+    Mod+Shift+Minus       { move-column-to-workspace 6; }
+    Mod+Shift+Egrave      { move-column-to-workspace 7; }
+    Mod+Shift+Underscore  { move-column-to-workspace 8; }
+    Mod+Shift+Ccedilla    { move-column-to-workspace 9; }
+
+    // Screenshots
+    Print { screenshot; }
+    Ctrl+Print { screenshot-screen; }
+    Alt+Print { screenshot-window; }
+
+    // Lock screen (Hyprlock with fingerprint + password support)
+    Mod+Escape { spawn "hyprlock"; }
+    Mod+Alt+L  { spawn "hyprlock"; }
+
+    // Audio & Media keys
+    XF86AudioRaiseVolume allow-when-locked=true { spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "0.05+"; }
+    XF86AudioLowerVolume allow-when-locked=true { spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "0.05-"; }
+    XF86AudioMute        allow-when-locked=true { spawn "wpctl" "set-mute" "@DEFAULT_AUDIO_SINK@" "toggle"; }
+    XF86AudioMicMute     allow-when-locked=true { spawn "wpctl" "set-mute" "@DEFAULT_AUDIO_SOURCE@" "toggle"; }
+
+    // Brightness keys
+    XF86MonBrightnessUp   allow-when-locked=true { spawn "brightnessctl" "set" "+5%"; }
+    XF86MonBrightnessDown allow-when-locked=true { spawn "brightnessctl" "set" "5%-"; }
+
+    // Exit Niri
+    Mod+Shift+E { quit; }
+}
