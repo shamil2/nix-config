@@ -1,4 +1,4 @@
-{ ... }:
+{ config, ... }:
 {
   programs.nushell = {
     enable = true;
@@ -6,6 +6,8 @@
       $env.config = {
         show_banner: false,
       }
+      $env.FLAKE = "${config.home.homeDirectory}/nix-config"
+      $env.NH_FLAKE = "${config.home.homeDirectory}/nix-config"
     '';
     shellAliases = {
       ll = "ls -l";

@@ -10,6 +10,12 @@
     flake = "/home/${myvars.username}/nix-config";
   };
 
+  # Export FLAKE path globally for nh
+  environment.sessionVariables = {
+    FLAKE = "/home/${myvars.username}/nix-config";
+    NH_FLAKE = "/home/${myvars.username}/nix-config";
+  };
+
   # System-wide packages
   environment.systemPackages = with pkgs; [
     vim
