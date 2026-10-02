@@ -4,21 +4,21 @@
 default:
     @just --list
 
-# Switch system configuration to this flake
+# Switch system configuration (modern via nh)
 switch:
-    sudo nixos-rebuild switch --flake .#nixos --no-reexec
+    nh os switch
 
 # Test system configuration without adding to bootloader
 test:
-    sudo nixos-rebuild test --flake .#nixos --no-reexec
+    nh os test
 
 # Build configuration and set it as next boot entry without switching now
 boot:
-    sudo nixos-rebuild boot --flake .#nixos --no-reexec
+    nh os boot
 
-# Build system toplevel derivation only (no root required)
+# Build system toplevel derivation only (dry-run / build)
 build:
-    nix --extra-experimental-features "nix-command flakes" build .#nixosConfigurations.nixos.config.system.build.toplevel
+    nh os build
 
 # Update all flake inputs
 update:
@@ -28,8 +28,6 @@ update:
 check:
     nix --extra-experimental-features "nix-command flakes" flake check
 
-# Garbage collection and store cleanup
+# Garbage collection and store cleanup (modern via nh)
 clean:
-    sudo nix-collect-garbage -d
-    nix-collect-garbage -d
-    sudo nix-store --optimise
+    nh clean all --keep 5

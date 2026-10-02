@@ -8,8 +8,9 @@
       la = "ls -A";
       l = "ls -CF";
       ".." = "cd ..";
-      rebuild = "sudo nixos-rebuild switch --flake ${config.home.homeDirectory}/nix-config#nixos";
-      nix-test = "sudo nixos-rebuild test --flake ${config.home.homeDirectory}/nix-config#nixos";
+      rebuild = "nh os switch";
+      nix-test = "nh os test";
+      nix-clean = "nh clean all";
     };
   };
 }

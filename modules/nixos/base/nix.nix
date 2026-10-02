@@ -3,12 +3,8 @@
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
-  # Garbage collection
-  nix.gc = {
-    automatic = lib.mkDefault true;
-    dates = lib.mkDefault "weekly";
-    options = lib.mkDefault "--delete-older-than 7d";
-  };
+  # Garbage collection handled by programs.nh.clean
+  nix.gc.automatic = false;
 
   # Auto-optimise store
   nix.settings.auto-optimise-store = true;
