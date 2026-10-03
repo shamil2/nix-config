@@ -1,0 +1,30 @@
+# Nix & NixOS build outputs
+result
+result-*
+
+# Dev environments & direnv
+.direnv/
+.devenv/
+.devenv.flake.*
+
+# Editor temporary & configuration files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.bak
+
+# Operating System files
+.DS_Store
+Thumbs.db
+
+# Safety guards against accidental secret commits
+*.age-key
+*.key
+*.pem
+*.secret
+secrets/
+.env
+.env.*
+!.env.example
