@@ -1,5 +1,7 @@
 # ❄️ NixOS & Home Manager Configuration
 
+[![CI](https://github.com/shamil2/nix-config/actions/workflows/ci.yml/badge.svg)](https://github.com/shamil2/nix-config/actions/workflows/ci.yml)
+
 A modular, reproducible, and batteries-included NixOS Flake configuration featuring a modern Wayland rice (Niri), SRE/DevOps tooling, and user environment managed via Home Manager. Inspired by [ryan4yin/nix-config](https://github.com/ryan4yin/nix-config).
 
 ---
