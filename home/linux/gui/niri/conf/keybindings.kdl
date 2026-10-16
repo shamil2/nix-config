@@ -17,6 +17,12 @@ binds {
     Mod+F { maximize-column; }
     Mod+Shift+F { fullscreen-window; }
     Mod+R { switch-preset-column-width; }
+    Mod+Shift+Space { toggle-window-floating; }
+    Mod+Alt+Space { switch-focus-between-floating-and-tiling; }
+
+    // Visual Overview (Workspace & window picker)
+    Mod+Tab { toggle-overview; }
+    Mod+O   { toggle-overview; }
 
     // Focus navigation
     Mod+Left  { focus-column-left; }
@@ -37,6 +43,17 @@ binds {
     Mod+Shift+J     { move-window-down; }
     Mod+Shift+K     { move-window-up; }
     Mod+Shift+L     { move-column-right; }
+
+    // Monitors (Screens): Navigation & Moving Windows
+    Mod+Ctrl+Left  { focus-monitor-left; }
+    Mod+Ctrl+Right { focus-monitor-right; }
+    Mod+Ctrl+H     { focus-monitor-left; }
+    Mod+Ctrl+L     { focus-monitor-right; }
+
+    Mod+Ctrl+Shift+Left  { move-column-to-monitor-left; }
+    Mod+Ctrl+Shift+Right { move-column-to-monitor-right; }
+    Mod+Ctrl+Shift+H     { move-column-to-monitor-left; }
+    Mod+Ctrl+Shift+L     { move-column-to-monitor-right; }
 
     // Workspaces (supports both standard numbers and direct AZERTY characters)
     Mod+1 { focus-workspace 1; }

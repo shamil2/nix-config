@@ -5,28 +5,127 @@
   ...
 }:
 let
-  # Wallpaper rotation daemon using swaybg
-  wallpaper-rotator = pkgs.writeShellScriptBin "wallpaper-rotator" ''
-    WALLPAPER_DIR="$HOME/Pictures/Wallpapers"
-    INTERVAL=300 # 5 minutes
+  # Per-workspace dynamic wallpaper daemon for Niri
+  wallpaper-rotator = pkgs.writeScriptBin "wallpaper-rotator" ''
+    #!${pkgs.python3}/bin/python3
+    import json
+    import os
+    import signal
+    import subprocess
+    import sys
+    import time
 
-    while true; do
-      # Collect all images from the wallpaper directories and shuffle
-      mapfile -t images < <(find "$WALLPAPER_DIR" -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" \) ! -name "default_wallpaper" | shuf)
-      if [ ''${#images[@]} -eq 0 ]; then
-        sleep 10
-        continue
-      fi
-      for img in "''${images[@]}"; do
-        # Start new swaybg instance with selected wallpaper
-        ${pkgs.swaybg}/bin/swaybg -m fill -i "$img" &
-        NEW_PID=$!
-        sleep 1
-        # Kill previous swaybg instances
-        ${pkgs.procps}/bin/pgrep swaybg | ${pkgs.gnugrep}/bin/grep -v "^$NEW_PID$" | ${pkgs.findutils}/bin/xargs -r kill 2>/dev/null || true
-        sleep "$INTERVAL"
-      done
-    done
+    THEME_LINK = os.path.expanduser("~/Pictures/Wallpapers/current-theme")
+    DEFAULT_THEME_DIR = os.path.expanduser("~/Pictures/Wallpapers/miyazaki")
+
+    def get_current_theme_dir():
+        if os.path.islink(THEME_LINK):
+            return os.path.realpath(THEME_LINK)
+        return DEFAULT_THEME_DIR
+
+    def get_wallpaper_for_workspace(idx):
+        theme_dir = get_current_theme_dir()
+        candidate = os.path.join(theme_dir, f"workspace-{idx}.png")
+        if os.path.exists(candidate):
+            return candidate
+        candidate_jpg = os.path.join(theme_dir, f"workspace-{idx}.jpg")
+        if os.path.exists(candidate_jpg):
+            return candidate_jpg
+        fallback = os.path.join(theme_dir, "workspace-1.png")
+        if os.path.exists(fallback):
+            return fallback
+        return None
+
+    class WallpaperManager:
+        def __init__(self):
+            self.current_idx = None
+            self.current_proc = None
+            self.workspace_map = {}
+
+        def set_wallpaper(self, idx):
+            if idx == self.current_idx and self.current_proc and self.current_proc.poll() is None:
+                return
+            wall = get_wallpaper_for_workspace(idx)
+            if not wall:
+                return
+            new_proc = subprocess.Popen(["${pkgs.swaybg}/bin/swaybg", "-m", "fill", "-i", wall])
+            time.sleep(0.08)
+            if self.current_proc and self.current_proc.poll() is None:
+                self.current_proc.terminate()
+                try:
+                    self.current_proc.wait(timeout=0.2)
+                except Exception:
+                    self.current_proc.kill()
+            self.current_proc = new_proc
+            self.current_idx = idx
+
+        def reload_theme(self, signum=None, frame=None):
+            idx = self.current_idx or 1
+            self.current_idx = None
+            self.set_wallpaper(idx)
+
+        def update_workspaces(self, workspaces):
+            active_idx = None
+            for ws in workspaces:
+                wid = ws.get("id")
+                widx = ws.get("idx")
+                self.workspace_map[wid] = widx
+                if ws.get("is_active") and ws.get("is_focused"):
+                    active_idx = widx
+            if active_idx is not None:
+                self.set_wallpaper(active_idx)
+
+        def handle_workspace_activated(self, wid):
+            idx = self.workspace_map.get(wid)
+            if idx is not None:
+                self.set_wallpaper(idx)
+            else:
+                try:
+                    out = subprocess.check_output(["niri", "msg", "--json", "workspaces"])
+                    self.update_workspaces(json.loads(out))
+                except Exception:
+                    pass
+
+        def run(self):
+            signal.signal(signal.SIGUSR1, self.reload_theme)
+            try:
+                out = subprocess.check_output(["niri", "msg", "--json", "workspaces"])
+                self.update_workspaces(json.loads(out))
+            except Exception as e:
+                print("Initial query failed:", e)
+
+            proc = subprocess.Popen(["niri", "msg", "--json", "event-stream"], stdout=subprocess.PIPE, text=True)
+            while True:
+                line = proc.stdout.readline()
+                if not line:
+                    break
+                try:
+                    event = json.loads(line)
+                    if "WorkspacesChanged" in event:
+                        self.update_workspaces(event["WorkspacesChanged"].get("workspaces", []))
+                    elif "WorkspaceActivated" in event:
+                        self.handle_workspace_activated(event["WorkspaceActivated"].get("id"))
+                except Exception:
+                    pass
+
+    if __name__ == "__main__":
+        wm = WallpaperManager()
+        wm.run()
+  '';
+
+  # CLI tool to switch wallpaper themes easily (miyazaki, musashi, etc.)
+  set-wallpaper-theme = pkgs.writeShellScriptBin "set-wallpaper-theme" ''
+    THEME="$1"
+    TARGET="$HOME/Pictures/Wallpapers/$THEME"
+    if [ -z "$THEME" ] || [ ! -d "$TARGET" ]; then
+      echo "Usage: set-wallpaper-theme <theme_name>"
+      echo "Available themes in ~/Pictures/Wallpapers:"
+      find "$HOME/Pictures/Wallpapers" -mindepth 1 -maxdepth 1 -type d -exec basename {} \;
+      exit 1
+    fi
+    ln -sfn "$TARGET" "$HOME/Pictures/Wallpapers/current-theme"
+    pkill -USR1 -f wallpaper-rotator || true
+    echo "Switched wallpaper theme to: $THEME"
   '';
 in
 {
@@ -36,6 +135,7 @@ in
 
   home.packages = [
     wallpaper-rotator
+    set-wallpaper-theme
   ];
 
   # Link Niri & Hyprlock configuration
@@ -148,6 +248,7 @@ in
         height = 34;
         spacing = 4;
         modules-left = [
+          "custom/overview"
           "niri/workspaces"
           "clock"
         ];
@@ -165,6 +266,12 @@ in
           "tray"
           "custom/power"
         ];
+
+        "custom/overview" = {
+          format = "󰕰";
+          tooltip = "Aperçu (Overview)\nClic: Afficher / Masquer l'aperçu des espaces et fenêtres";
+          on-click = "niri msg action toggle-overview";
+        };
 
         "niri/workspaces" = {
           format = "{icon}";
@@ -298,11 +405,20 @@ in
         color: #f5c2e7;
         font-weight: bold;
       }
-      #clock, #cpu, #memory, #network, #pulseaudio, #backlight, #battery, #tray, #custom-clipboard, #custom-power {
+      #clock, #cpu, #memory, #network, #pulseaudio, #backlight, #battery, #tray, #custom-clipboard, #custom-power, #custom-overview {
         padding: 0 10px;
         margin: 2px 3px;
         border-radius: 6px;
         background-color: #313244;
+      }
+      #custom-overview {
+        color: #cba6f7;
+        font-size: 15px;
+        padding: 0 10px;
+      }
+      #custom-overview:hover {
+        background-color: #cba6f7;
+        color: #1e1e2e;
       }
       #custom-clipboard {
         color: #f5c2e7;
