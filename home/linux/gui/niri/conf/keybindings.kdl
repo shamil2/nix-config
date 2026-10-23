@@ -2,8 +2,8 @@
 
 binds {
     // Terminal emulator
-    Mod+Return { spawn "alacritty"; }
-    Mod+T { spawn "alacritty"; }
+    Mod+Return { spawn "kitty"; }
+    Mod+T { spawn "kitty"; }
 
     // Application launcher
     Mod+D { spawn "fuzzel"; }

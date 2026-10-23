@@ -32,6 +32,7 @@
   programs.fzf = {
     enable = true;
     enableBashIntegration = true;
+    enableZshIntegration = true;
     # Let Atuin handle Ctrl-R history search
     historyWidget.command = "";
     colors = {
@@ -52,6 +53,7 @@
   programs.atuin = {
     enable = true;
     enableBashIntegration = true;
+    enableZshIntegration = true;
     enableNushellIntegration = true;
     settings = {
       auto_sync = false;
@@ -68,6 +70,7 @@
   programs.zoxide = {
     enable = true;
     enableBashIntegration = true;
+    enableZshIntegration = true;
     enableNushellIntegration = true;
     options = [
       "--cmd cd"
@@ -78,6 +81,7 @@
   programs.direnv = {
     enable = true;
     enableBashIntegration = true;
+    enableZshIntegration = true;
     enableNushellIntegration = true;
     nix-direnv.enable = true;
   };

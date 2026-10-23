@@ -5,6 +5,19 @@
     # Dev environments & isolation
     devenv
 
+    # Python with pip, mcp[cli], fastembed, and chromadb
+    (python3.withPackages (
+      ps:
+      with ps;
+      [
+        pip
+        mcp
+        fastembed
+        chromadb
+      ]
+      ++ ps.mcp.optional-dependencies.cli
+    ))
+
     # Kubernetes & Containers
     kubectl
     k9s

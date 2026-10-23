@@ -167,7 +167,7 @@ This repository includes a `Justfile` to streamline common maintenance operation
 
 | Keybinding | Action |
 | :--- | :--- |
-| `Mod + Return` / `Mod + T` | Open terminal (`alacritty`) |
+| `Mod + Return` / `Mod + T` | Open terminal (`kitty`) |
 | `Mod + Space` / `Mod + D` | Application launcher (`fuzzel`) |
 | `Mod + V` | Interactive clipboard history (`cliphist` + `fuzzel`) |
 | `Mod + Q` | Close active window |

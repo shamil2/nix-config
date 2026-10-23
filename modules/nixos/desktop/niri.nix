@@ -18,7 +18,7 @@ in
     # Wayland desktop environment utilities & tools
     environment.systemPackages = with pkgs; [
       xwayland-satellite
-      alacritty
+      kitty
       fuzzel
       mako
       swaybg

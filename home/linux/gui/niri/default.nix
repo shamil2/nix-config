@@ -147,50 +147,56 @@ in
     "hypr/hyprlock.conf".source = ./conf/hyprlock.conf;
   };
 
-  # Terminal Emulator (Alacritty with Catppuccin Mocha)
-  programs.alacritty = {
+  # Terminal Emulator (Kitty with Catppuccin Mocha & native image protocol)
+  programs.kitty = {
     enable = true;
+    font = {
+      name = "JetBrainsMono Nerd Font";
+      size = 11.0;
+    };
     settings = {
-      window = {
-        padding = {
-          x = 10;
-          y = 10;
-        };
-        opacity = 0.95;
-      };
-      font = {
-        normal = {
-          family = "JetBrainsMono Nerd Font";
-          style = "Regular";
-        };
-        size = 11.0;
-      };
-      colors = {
-        primary = {
-          background = "#1e1e2e";
-          foreground = "#cdd6f4";
-        };
-        normal = {
-          black = "#45475a";
-          red = "#f38ba8";
-          green = "#a6e3a1";
-          yellow = "#f9e2af";
-          blue = "#89b4fa";
-          magenta = "#f5c2e7";
-          cyan = "#94e2d5";
-          white = "#bac2de";
-        };
-        bright = {
-          black = "#585b70";
-          red = "#f38ba8";
-          green = "#a6e3a1";
-          yellow = "#f9e2af";
-          blue = "#89b4fa";
-          magenta = "#f5c2e7";
-          cyan = "#94e2d5";
-          white = "#a6adc8";
-        };
-      };
+      shell = "zsh";
+      window_padding_width = 10;
+      background_opacity = "0.95";
+      confirm_os_window_close = 0;
+      enable_audio_bell = false;
+
+      # Catppuccin Mocha palette
+      foreground = "#cdd6f4";
+      background = "#1e1e2e";
+      selection_foreground = "#1e1e2e";
+      selection_background = "#f5e0dc";
+
+      cursor = "#f5e0dc";
+      cursor_text_color = "#1e1e2e";
+      url_color = "#f5e0dc";
+
+      active_border_color = "#b4befe";
+      inactive_border_color = "#6c7086";
+      bell_border_color = "#f9e2af";
+
+      active_tab_foreground = "#11111b";
+      active_tab_background = "#cba6f7";
+      inactive_tab_foreground = "#cdd6f4";
+      inactive_tab_background = "#181825";
+      tab_bar_background = "#11111b";
+
+      color0 = "#45475a";
+      color8 = "#585b70";
+      color1 = "#f38ba8";
+      color9 = "#f38ba8";
+      color2 = "#a6e3a1";
+      color10 = "#a6e3a1";
+      color3 = "#f9e2af";
+      color11 = "#f9e2af";
+      color4 = "#89b4fa";
+      color12 = "#89b4fa";
+      color5 = "#f5c2e7";
+      color13 = "#f5c2e7";
+      color6 = "#94e2d5";
+      color14 = "#94e2d5";
+      color7 = "#bac2de";
+      color15 = "#a6adc8";
     };
   };
 
@@ -201,7 +207,7 @@ in
       main = {
         font = "JetBrainsMono Nerd Font:size=12";
         prompt = "'❯ '";
-        terminal = "alacritty";
+        terminal = "kitty";
         lines = 10;
         width = 35;
         horizontal-pad = 20;
@@ -337,12 +343,12 @@ in
 
         cpu = {
           format = " {usage}%";
-          on-click = "alacritty -e btop";
+          on-click = "kitty -e btop";
         };
 
         memory = {
           format = " {}%";
-          on-click = "alacritty -e btop";
+          on-click = "kitty -e btop";
         };
 
         tray = {
