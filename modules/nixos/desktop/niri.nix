@@ -15,6 +15,11 @@ in
     # Enable Hyprlock screen locker
     programs.hyprlock.enable = true;
 
+    # Run Electron / Chromium apps (VS Code, Obsidian, Chrome) natively on Wayland
+    environment.sessionVariables = {
+      NIXOS_OZONE_WL = "1";
+    };
+
     # Wayland desktop environment utilities & tools
     environment.systemPackages = with pkgs; [
       xwayland-satellite

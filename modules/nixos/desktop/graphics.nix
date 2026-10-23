@@ -1,8 +1,16 @@
-{ ... }:
+{ pkgs, ... }:
 {
-  # Mesa / Hardware graphics acceleration
+  # Mesa / Intel Hardware graphics & VA-API video acceleration
   hardware.graphics = {
     enable = true;
     enable32Bit = true;
+    extraPackages = with pkgs; [
+      intel-media-driver
+      vpl-gpu-rt
+    ];
+  };
+
+  environment.sessionVariables = {
+    LIBVA_DRIVER_NAME = "iHD";
   };
 }

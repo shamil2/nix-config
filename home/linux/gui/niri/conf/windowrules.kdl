@@ -15,3 +15,8 @@ window-rule {
     match app-id=r#"nm-connection-editor"#
     open-floating true
 }
+
+window-rule {
+    match app-id=r#"^(\.blueman-manager-wrapped|blueman-manager)$"#
+    open-floating true
+}

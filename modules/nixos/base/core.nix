@@ -23,4 +23,20 @@
       };
     };
   };
+
+  # Run dynamically linked binaries (VS Code extensions, pip/npm native wheels) & /bin/* scripts
+  programs.nix-ld.enable = true;
+  services.envfs.enable = true;
+
+  # NVMe SSD periodic TRIM & Intel thermal management
+  services.fstrim.enable = true;
+  services.thermald.enable = true;
+
+  # Fast compressed RAM swap & OOM desktop freeze protection
+  zramSwap.enable = true;
+  services.earlyoom = {
+    enable = true;
+    freeMemThreshold = 5;
+    freeSwapThreshold = 10;
+  };
 }
