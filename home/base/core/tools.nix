@@ -5,10 +5,12 @@
     enable = true;
     settings = {
       git = {
-        paging = {
-          colorArg = "always";
-          pager = "delta --dark --paging=never";
-        };
+        diffRenderers = [
+          {
+            colorArg = "always";
+            command = "delta --dark --paging=never";
+          }
+        ];
       };
       gui = {
         theme = {
