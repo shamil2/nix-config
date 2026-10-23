@@ -131,7 +131,10 @@ let
   # Secret-filtering clipboard & primary-selection store wrapper for cliphist
   cliphist-store-safe = pkgs.writeScriptBin "cliphist-store-safe" ''
     #!${pkgs.python3}/bin/python3
+    import fcntl
+    import hashlib
     import math
+    import os
     import re
     import subprocess
     import sys
@@ -177,6 +180,10 @@ let
     if len(text) < 2 or len(text) > 100000:
         sys.exit(0)
 
+    # Ignore internal menu action labels
+    if text.startswith(("󰆴 ", "󰃢 ")):
+        sys.exit(0)
+
     # Filter out known secret formats (private keys, API tokens, JWTs, password assignments)
     SECRET_PATTERNS = [
         r"-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----",
@@ -209,34 +216,149 @@ let
             if classes >= 3 and entropy >= 3.3:
                 sys.exit(0)
 
+    runtime_dir = os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}")
+    lock_path = os.path.join(runtime_dir, "cliphist-safe.lock")
+    hash_path = os.path.join(runtime_dir, "cliphist-last.sha256")
+    digest = hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+    with open(lock_path, "w") as lock_file:
+        fcntl.flock(lock_file, fcntl.LOCK_EX)
+        try:
+            if os.path.exists(hash_path):
+                with open(hash_path, "r") as hf:
+                    if hf.read().strip() == digest:
+                        sys.exit(0)
+        except Exception:
+            pass
+        with open(hash_path, "w") as hf:
+            hf.write(digest)
+
+    # Sync mouse primary selection to regular clipboard so Ctrl+V works everywhere
+    if is_primary:
+        try:
+            p_copy = subprocess.Popen(["${pkgs.wl-clipboard}/bin/wl-copy"], stdin=subprocess.PIPE)
+            p_copy.communicate(text.encode("utf-8"), timeout=1)
+        except Exception:
+            pass
+
     proc = subprocess.Popen(
         ["${pkgs.cliphist}/bin/cliphist", "-min-store-length", "2", "store"],
         stdin=subprocess.PIPE,
     )
-    proc.communicate(raw)
+    proc.communicate(text.encode("utf-8"))
+
+    # Show a lightweight 1.5s popup toast confirming the text was copied
+    preview = " ".join(text.split())
+    if len(preview) > 48:
+        preview = preview[:48] + "…"
+    subprocess.Popen(
+        [
+            "${pkgs.libnotify}/bin/notify-send",
+            "-a", "Clipboard",
+            "-t", "1500",
+            "-u", "low",
+            "-h", "string:x-canonical-private-synchronous:clipboard",
+            "󰅌 Copié",
+            preview,
+        ],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
   '';
 
   # Interactive Fuzzel viewer/selector for copied & selected text history
+  # - Enter: copy selected line
+  # - Delete or Ctrl+D: delete highlighted line directly and stay in menu
+  # - Ctrl+Shift+D: wipe entire history
   clipboard-menu = pkgs.writeShellScriptBin "clipboard-menu" ''
+    NOTIFY="${pkgs.libnotify}/bin/notify-send -a Clipboard -t 1500 -u low -h string:x-canonical-private-synchronous:clipboard"
+    DELETE_OPT="󰆴 Supprimer une ligne... (ou touche Suppr / Ctrl+D)"
+    WIPE_OPT="󰃢 Vider tout l'historique (ou Ctrl+Shift+D)"
+
+    run_delete_mode() {
+      while true; do
+        LIST="$(${pkgs.cliphist}/bin/cliphist list)"
+        [ -z "$LIST" ] && exit 0
+        SELECTION="$(printf '%s\n' "$LIST" | ${pkgs.fuzzel}/bin/fuzzel --dmenu \
+          --prompt="󰆴 Supprimer ❯ " \
+          --placeholder="Entrée / Suppr / Ctrl+D: supprimer la ligne  |  Échap: retour" \
+          --width=70 --lines=15 \
+          --override="key-bindings.delete-next=none" \
+          --override="key-bindings.custom-1=Delete Control+d")"
+        STATUS=$?
+        if [ $STATUS -eq 0 ] || [ $STATUS -eq 10 ]; then
+          if [ -n "$SELECTION" ]; then
+            printf '%s' "$SELECTION" | ${pkgs.cliphist}/bin/cliphist delete
+            rm -f "''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/cliphist-last.sha256"
+            $NOTIFY "󰆴 Ligne supprimée" "Entrée retirée du presse-papier"
+          fi
+        else
+          break
+        fi
+      done
+    }
+
     case "$1" in
       --delete|-d)
-        SELECTION="$(${pkgs.cliphist}/bin/cliphist list | ${pkgs.fuzzel}/bin/fuzzel --dmenu --prompt="󰆴 Delete ❯ " --width=65 --lines=15)"
-        if [ -n "$SELECTION" ]; then
-          printf '%s' "$SELECTION" | ${pkgs.cliphist}/bin/cliphist delete
-        fi
+        run_delete_mode
+        exit 0
         ;;
       --wipe|-w)
         ${pkgs.cliphist}/bin/cliphist wipe
-        ;;
-      *)
-        SELECTION="$(${pkgs.cliphist}/bin/cliphist list | ${pkgs.fuzzel}/bin/fuzzel --dmenu --prompt="󰅌 Paste ❯ " --width=65 --lines=15)"
-        if [ -n "$SELECTION" ]; then
-          DECODED="$(printf '%s' "$SELECTION" | ${pkgs.cliphist}/bin/cliphist decode)"
-          printf '%s' "$DECODED" | ${pkgs.wl-clipboard}/bin/wl-copy
-          printf '%s' "$DECODED" | ${pkgs.wl-clipboard}/bin/wl-copy --primary
-        fi
+        rm -f "''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/cliphist-last.sha256"
+        $NOTIFY "󰃢 Presse-papier vidé" "Tout l'historique a été effacé"
+        exit 0
         ;;
     esac
+
+    while true; do
+      LIST="$(${pkgs.cliphist}/bin/cliphist list)"
+      if [ -z "$LIST" ]; then
+        $NOTIFY "󰅌 Presse-papier vide" "Aucun texte copié pour le moment"
+        exit 0
+      fi
+
+      SELECTION="$(printf '%s\n%s\n%s\n' "$LIST" "$DELETE_OPT" "$WIPE_OPT" | ${pkgs.fuzzel}/bin/fuzzel --dmenu \
+        --prompt="󰅌 Paste ❯ " \
+        --placeholder="Entrée: copier | Suppr / Ctrl+D: supprimer ligne | Ctrl+Shift+D: vider" \
+        --width=70 --lines=15 \
+        --override="key-bindings.delete-next=none" \
+        --override="key-bindings.custom-1=Delete Control+d" \
+        --override="key-bindings.custom-2=Control+Shift+d")"
+      STATUS=$?
+
+      if [ $STATUS -eq 10 ]; then
+        # Delete / Ctrl+D pressed on highlighted line -> delete it and refresh menu
+        if [ -n "$SELECTION" ] && [ "$SELECTION" != "$DELETE_OPT" ] && [ "$SELECTION" != "$WIPE_OPT" ]; then
+          printf '%s' "$SELECTION" | ${pkgs.cliphist}/bin/cliphist delete
+          rm -f "''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/cliphist-last.sha256"
+          $NOTIFY "󰆴 Ligne supprimée" "Entrée retirée du presse-papier"
+        fi
+        continue
+      elif [ $STATUS -eq 11 ] || [ "$SELECTION" = "$WIPE_OPT" ]; then
+        ${pkgs.cliphist}/bin/cliphist wipe
+        rm -f "''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/cliphist-last.sha256"
+        $NOTIFY "󰃢 Presse-papier vidé" "Tout l'historique a été effacé"
+        break
+      elif [ $STATUS -eq 0 ] && [ "$SELECTION" = "$DELETE_OPT" ]; then
+        run_delete_mode
+        continue
+      elif [ $STATUS -eq 0 ] && [ -n "$SELECTION" ]; then
+        DECODED="$(printf '%s' "$SELECTION" | ${pkgs.cliphist}/bin/cliphist decode)"
+        printf '%s' "$DECODED" | ${pkgs.python3}/bin/python3 -c '
+import hashlib, os, sys
+text = sys.stdin.read().strip()
+rt = os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}")
+open(os.path.join(rt, "cliphist-last.sha256"), "w").write(hashlib.sha256(text.encode()).hexdigest())
+'
+        printf '%s' "$DECODED" | ${pkgs.wl-clipboard}/bin/wl-copy
+        printf '%s' "$DECODED" | ${pkgs.wl-clipboard}/bin/wl-copy --primary
+        $NOTIFY "󰅌 Prêt à coller" "$(printf '%s' "$DECODED" | tr '\n' ' ' | cut -c1-48)"
+        break
+      else
+        break
+      fi
+    done
   '';
 in
 {
