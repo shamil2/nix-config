@@ -127,6 +127,117 @@ let
     pkill -USR1 -f wallpaper-rotator || true
     echo "Switched wallpaper theme to: $THEME"
   '';
+
+  # Secret-filtering clipboard & primary-selection store wrapper for cliphist
+  cliphist-store-safe = pkgs.writeScriptBin "cliphist-store-safe" ''
+    #!${pkgs.python3}/bin/python3
+    import math
+    import re
+    import subprocess
+    import sys
+    import time
+
+    is_primary = "--primary" in sys.argv[1:]
+    raw = sys.stdin.buffer.read()
+    if not raw:
+        sys.exit(0)
+
+    # For mouse primary selection, debounce 250ms so intermediate drag states are ignored
+    if is_primary:
+        time.sleep(0.25)
+        try:
+            cmd = ["${pkgs.wl-clipboard}/bin/wl-paste", "--primary", "--no-newline"]
+            current = subprocess.check_output(cmd, stderr=subprocess.DEVNULL, timeout=1)
+            if current.rstrip(b"\r\n") != raw.rstrip(b"\r\n"):
+                sys.exit(0)
+        except Exception:
+            pass
+
+    # Check Wayland clipboard MIME types for password manager hints
+    try:
+        mime_cmd = ["${pkgs.wl-clipboard}/bin/wl-paste", "--list-types"]
+        if is_primary:
+            mime_cmd.insert(1, "--primary")
+        mimes = subprocess.check_output(mime_cmd, stderr=subprocess.DEVNULL, text=True, timeout=1).lower()
+        secret_mimes = (
+            "x-kde-passwordmanagerhint",
+            "x-sensitive",
+            "password",
+            "secret",
+            "bitwarden",
+            "keepass",
+            "1password",
+        )
+        if any(m in mimes for m in secret_mimes):
+            sys.exit(0)
+    except Exception:
+        pass
+
+    text = raw.decode("utf-8", errors="ignore").strip()
+    if len(text) < 2 or len(text) > 100000:
+        sys.exit(0)
+
+    # Filter out known secret formats (private keys, API tokens, JWTs, password assignments)
+    SECRET_PATTERNS = [
+        r"-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----",
+        r"-----BEGIN PGP MESSAGE-----",
+        r"\b(ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9_]{20,}\b",
+        r"\bgithub_pat_[A-Za-z0-9_]{20,}\b",
+        r"\bglpat-[A-Za-z0-9_-]{20,}\b",
+        r"\bsk-(proj-|ant-)?[A-Za-z0-9_-]{20,}\b",
+        r"\bxox[baprs]-[A-Za-z0-9-]{10,}\b",
+        r"\bAKIA[0-9A-Z]{16}\b",
+        r"\bAIza[0-9A-Za-z_-]{35}\b",
+        r"\beyJ[A-Za-z0-9_-]{15,}\.[A-Za-z0-9_-]{15,}\.[A-Za-z0-9_-]{15,}\b",
+        r"(?i)\b(bearer|password|passwd|secret|api[_-]?key|client[_-]?secret|private[_-]?key|access[_-]?token|auth[_-]?token)\s*[:=]\s*['\"]?\S{6,}",
+    ]
+    for pat in SECRET_PATTERNS:
+        if re.search(pat, text):
+            sys.exit(0)
+
+    # Heuristic: filter single-token high-entropy strings that look like passwords
+    if " " not in text and "\n" not in text and "\t" not in text and 10 <= len(text) <= 64:
+        if not text.startswith(("http://", "https://", "/", "~/", "./")) and "/" not in text:
+            classes = sum([
+                bool(re.search(r"[a-z]", text)),
+                bool(re.search(r"[A-Z]", text)),
+                bool(re.search(r"[0-9]", text)),
+                bool(re.search(r"[^a-zA-Z0-9._-]", text)),
+            ])
+            freq = {ch: text.count(ch) / len(text) for ch in set(text)}
+            entropy = -sum(p * math.log2(p) for p in freq.values())
+            if classes >= 3 and entropy >= 3.3:
+                sys.exit(0)
+
+    proc = subprocess.Popen(
+        ["${pkgs.cliphist}/bin/cliphist", "-min-store-length", "2", "store"],
+        stdin=subprocess.PIPE,
+    )
+    proc.communicate(raw)
+  '';
+
+  # Interactive Fuzzel viewer/selector for copied & selected text history
+  clipboard-menu = pkgs.writeShellScriptBin "clipboard-menu" ''
+    case "$1" in
+      --delete|-d)
+        SELECTION="$(${pkgs.cliphist}/bin/cliphist list | ${pkgs.fuzzel}/bin/fuzzel --dmenu --prompt="󰆴 Delete ❯ " --width=65 --lines=15)"
+        if [ -n "$SELECTION" ]; then
+          printf '%s' "$SELECTION" | ${pkgs.cliphist}/bin/cliphist delete
+        fi
+        ;;
+      --wipe|-w)
+        ${pkgs.cliphist}/bin/cliphist wipe
+        ;;
+      *)
+        SELECTION="$(${pkgs.cliphist}/bin/cliphist list | ${pkgs.fuzzel}/bin/fuzzel --dmenu --prompt="󰅌 Paste ❯ " --width=65 --lines=15)"
+        if [ -n "$SELECTION" ]; then
+          DECODED="$(printf '%s' "$SELECTION" | ${pkgs.cliphist}/bin/cliphist decode)"
+          printf '%s' "$DECODED" | ${pkgs.wl-clipboard}/bin/wl-copy
+          printf '%s' "$DECODED" | ${pkgs.wl-clipboard}/bin/wl-copy --primary
+        fi
+        ;;
+    esac
+  '';
 in
 {
   # Link Wallpapers to ~/Pictures/Wallpapers
@@ -136,6 +247,8 @@ in
   home.packages = [
     wallpaper-rotator
     set-wallpaper-theme
+    cliphist-store-safe
+    clipboard-menu
   ];
 
   # Link Niri & Hyprlock configuration
@@ -156,6 +269,7 @@ in
     };
     settings = {
       shell = "zsh";
+      copy_on_select = "clipboard";
       window_padding_width = 10;
       background_opacity = "0.95";
       confirm_os_window_close = 0;
@@ -377,9 +491,9 @@ in
 
         "custom/clipboard" = {
           format = "";
-          tooltip = "Presse-papier (Historique)\nClic gauche: Sélectionner\nClic droit: Vider";
-          on-click = "cliphist list | fuzzel -d | cliphist decode | wl-copy";
-          on-click-right = "cliphist wipe";
+          tooltip = "Presse-papier & Sélections (Sans secrets)\nClic gauche (Mod+V): Sélectionner\nClic droit (Mod+Ctrl+V): Vider";
+          on-click = "clipboard-menu";
+          on-click-right = "clipboard-menu --wipe";
         };
 
         "custom/power" = {

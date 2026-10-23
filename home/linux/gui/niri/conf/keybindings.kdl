@@ -9,8 +9,10 @@ binds {
     Mod+D { spawn "fuzzel"; }
     Mod+Space { spawn "fuzzel"; }
 
-    // Clipboard History (Cliphist + Fuzzel)
-    Mod+V { spawn "bash" "-c" "cliphist list | fuzzel -d | cliphist decode | wl-copy"; }
+    // Clipboard & Selection History (Fuzzel + Cliphist, secrets filtered)
+    Mod+V       { spawn "clipboard-menu"; }
+    Mod+Shift+V { spawn "clipboard-menu" "--delete"; }
+    Mod+Ctrl+V  { spawn "clipboard-menu" "--wipe"; }
 
     // Window management
     Mod+Q { close-window; }
