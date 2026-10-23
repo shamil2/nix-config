@@ -40,9 +40,7 @@
     };
 
     shellAliases = {
-      ll = "ls -lah --color=auto";
-      la = "ls -A --color=auto";
-      l = "ls -CF --color=auto";
+      cat = "bat --paging=never";
       ".." = "cd ..";
       "..." = "cd ../..";
       rebuild = "nh os switch ~/nix-config";

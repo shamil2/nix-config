@@ -26,6 +26,15 @@ build:
 update:
     nix --extra-experimental-features "nix-command flakes" flake update
 
+# Update flake inputs and switch system configuration in one step
+upgrade:
+    nix --extra-experimental-features "nix-command flakes" flake update
+    nh os switch {{ FLAKE }}
+
+# Audit active system closure for known CVE security vulnerabilities
+audit:
+    vulnix --system
+
 # Check flake structure and evaluation
 check:
     nix --extra-experimental-features "nix-command flakes" flake check

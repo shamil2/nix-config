@@ -11,4 +11,16 @@
       pull.rebase = true;
     };
   };
+
+  # Delta (syntax-highlighted side-by-side git diffs)
+  programs.delta = {
+    enable = true;
+    enableGitIntegration = true;
+    options = {
+      navigate = true;
+      side-by-side = true;
+      line-numbers = true;
+      dark = true;
+    };
+  };
 }

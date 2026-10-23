@@ -244,6 +244,32 @@ in
     };
   };
 
+  # Automatic idle lock & screen power management (Swayidle + Hyprlock)
+  services.swayidle = {
+    enable = true;
+    events = [
+      {
+        event = "before-sleep";
+        command = "${pkgs.hyprlock}/bin/hyprlock";
+      }
+      {
+        event = "lock";
+        command = "${pkgs.hyprlock}/bin/hyprlock";
+      }
+    ];
+    timeouts = [
+      {
+        timeout = 600;
+        command = "${pkgs.hyprlock}/bin/hyprlock";
+      }
+      {
+        timeout = 900;
+        command = "${pkgs.niri}/bin/niri msg action power-off-monitors";
+        resumeCommand = "${pkgs.niri}/bin/niri msg action power-on-monitors";
+      }
+    ];
+  };
+
   # Status bar (Waybar)
   programs.waybar = {
     enable = true;

@@ -14,9 +14,7 @@
       export NH_OS_FLAKE="${config.home.homeDirectory}/nix-config"
     '';
     shellAliases = {
-      ll = "ls -lah";
-      la = "ls -A";
-      l = "ls -CF";
+      cat = "bat --paging=never";
       ".." = "cd ..";
       rebuild = "nh os switch ~/nix-config";
       nix-test = "nh os test ~/nix-config";

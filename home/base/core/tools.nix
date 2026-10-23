@@ -87,4 +87,26 @@
     enableNushellIntegration = true;
     nix-direnv.enable = true;
   };
+
+  # Eza (modern ls replacement with icons and git status)
+  programs.eza = {
+    enable = true;
+    enableBashIntegration = true;
+    enableZshIntegration = true;
+    enableNushellIntegration = true;
+    icons = "auto";
+    git = true;
+    extraOptions = [
+      "--group-directories-first"
+      "--header"
+    ];
+  };
+
+  # Bat (modern cat replacement with syntax highlighting)
+  programs.bat = {
+    enable = true;
+    config = {
+      style = "numbers,changes,header";
+    };
+  };
 }

@@ -31,5 +31,6 @@
     fastfetch
     nvd
     nix-output-monitor
+    vulnix
   ];
 }
